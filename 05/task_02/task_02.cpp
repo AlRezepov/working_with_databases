@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <wt/dbo/dbo.h>
 #include <Wt/Dbo/backend/Postgres.h>
 
@@ -65,6 +65,10 @@ public:
 };
 
 int main() {
+    
+    setlocale(LC_ALL, "ru_RU.UTF-8");
+
+
     try {
         std::string connectionString = "hostaddr=127.0.0.1 "
             "port=5432 "
@@ -84,18 +88,18 @@ int main() {
 
         session.createTables();
 
-        // Заполняем таблицы тестовыми данными
+        // Р—Р°РїРѕР»РЅСЏРµРј С‚Р°Р±Р»РёС†С‹ С‚РµСЃС‚РѕРІС‹РјРё РґР°РЅРЅС‹РјРё
         Wt::Dbo::Transaction transaction(session);
 
         auto publisher = session.add(std::make_unique<Publisher>());
-        publisher.modify()->name = "Target Publisher";
+        publisher.modify()->name = "Publisher_01";
 
         auto book = session.add(std::make_unique<Book>());
-        book.modify()->title = "Sample Book";
+        book.modify()->title = "Book_01";
         book.modify()->publisher = publisher;
 
         auto shop = session.add(std::make_unique<Shop>());
-        shop.modify()->name = "Bookstore A";
+        shop.modify()->name = "Bookstore_01";
 
         auto stock = session.add(std::make_unique<Stock>());
         stock.modify()->book = book;
@@ -104,22 +108,23 @@ int main() {
 
         transaction.commit();
 
-        // Вводим имя издателя
+        // Р’РІРѕРґРёРј РёРјСЏ РёР·РґР°С‚РµР»СЏ
         std::string targetPublisherName;
-        std::cout << "Введите имя издателя: ";
+        std::cout << "Enter the name of the publisher: ";
         std::cin >> targetPublisherName;
 
-        // Выполняем запрос
+        // Р’С‹РїРѕР»РЅСЏРµРј Р·Р°РїСЂРѕСЃ
         Wt::Dbo::Transaction queryTransaction(session);
-        auto shops = session.query<Shop>("WHERE id IN (SELECT id_shop FROM Stock WHERE id_book IN (SELECT id FROM Book WHERE id_publisher IN (SELECT id FROM Publisher WHERE name = ?)))").bind(targetPublisherName);
+        auto shops = session.find<Shop>().where("id IN (SELECT stock.id_shop FROM Stock stock INNER JOIN Book book ON stock.id_book = book.id INNER JOIN Publisher publisher ON book.id_publisher = publisher.id WHERE publisher.name = ?)").bind(targetPublisherName);
 
-        std::cout << "Магазины, продающие книги издателя " << targetPublisherName << ":" << std::endl;
+        std::cout << "Stores that sell the publisher's books " << targetPublisherName << ":" << std::endl;
 
         for (const auto& shop : shops.resultList()) {
-            std::cout << shop.name << std::endl;
+            std::cout << shop.modify()->name << std::endl;
         }
 
         queryTransaction.commit();
+
     }
     catch (const std::exception& e) {
         std::cout << "Error: " << e.what() << std::endl;
