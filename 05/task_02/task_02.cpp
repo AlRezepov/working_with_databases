@@ -115,7 +115,7 @@ int main() {
 
         // Выполняем запрос
         Wt::Dbo::Transaction queryTransaction(session);
-        auto shops = session.find<Shop>().where("id IN (SELECT stock.id_shop FROM Stock stock INNER JOIN Book book ON stock.id_book = book.id INNER JOIN Publisher publisher ON book.id_publisher = publisher.id WHERE publisher.name = ?)").bind(targetPublisherName);
+        auto shops = session.find<Shop>().where("id IN (SELECT stock.id_shop_id FROM Stock stock INNER JOIN Book book ON stock.id_book_id = book.id INNER JOIN Publisher publisher ON book.id_publisher_id = publisher.id WHERE publisher.name = ?)").bind(targetPublisherName);
 
         std::cout << "Stores that sell the publisher's books " << targetPublisherName << ":" << std::endl;
 
